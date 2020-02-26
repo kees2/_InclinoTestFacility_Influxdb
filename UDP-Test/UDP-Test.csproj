@@ -149,7 +149,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DataHandler.cs" />
+    <Compile Include="DataProcessor.cs" />
     <Compile Include="enums.cs" />
+    <Compile Include="IMU.cs" />
+    <Compile Include="IMUdata.cs" />
     <Compile Include="Influxdb.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

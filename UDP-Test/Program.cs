@@ -4,9 +4,8 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Diagnostics;
+using System.IO;
 
 namespace UDP_Test
 {
@@ -18,21 +17,43 @@ namespace UDP_Test
         static void Main(string[] args)
         {
 
-            
-            Receive receiver = new Receive();
-            Influxdb database = new Influxdb();
-            receiver.initUDP();
-            database.initDB();
+            //DataHandler handler = new DataHandler();
 
+            //Receive receiver = new Receive();
+            //receiver.initUDP();
+
+            Influxdb database = new Influxdb();
+            database.initDB();
+            database.SendToDatabase(0, 0, 0, 0);
+
+
+
+
+            /*handler.initDataHandler();
+            handler.makeThreads();
+            while (true)
+            {
+            }*/
+
+            //Console.SetOut(TextWriter.Null);
+            //Console.SetError(TextWriter.Null);
+            //receiver.initUDP();
+            //database.initDB();
+
+            /*
+            Stopwatch sw;
             for (int i = 0; i < 10; i++)
             {
-            database.SendToDatabase(0, 0, (UDP_Test.Influxdb.Data_type)0, 260);
-            }
+                sw = Stopwatch.StartNew();
+                database.SendToDatabase(0, (enums.Data_type)0, 260);
+                Console.WriteLine(sw.ElapsedMilliseconds);
+            }*/
 
             while (true)
             {
-                //receiver.receiveData();   
+                //Receive.dataMessage test = receiver.receiveData();
             }
+
         }
     }
 }

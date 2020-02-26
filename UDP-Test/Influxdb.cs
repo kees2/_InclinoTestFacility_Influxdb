@@ -12,51 +12,23 @@ using InfluxDB.LineProtocol.Client;
 using InfluxDB.LineProtocol.Payload;
 using System.Threading;
 
+
 namespace UDP_Test
 {
     class Influxdb
     {
-
-
-        const int amountPoints = 60;
-        static InfluxDBClient influxDBClient;
-        string Bucket = "Bridgescout";
-        string Org_id = "cda037e02dd0cf48";
-        char[] Token = "VkhsECxCQoHqFMvMmuU3Ui3s5XL1q3DANTDKuXJEvqc6smmx3G713LBeUeMiaTQzHOvOvAispoYJRfccdtxSSQ==".ToCharArray();
-        //WriteApi writeApi;
-
-        public enum IC_type
-        {
-            BMI55 = 0,
-            SCA103T = 1,
-            BMI085 = 2,
-            LMS6DSO = 3,
-            MS5611 = 4
-        };
-
-        public enum Data_type
-        {
-            GYRO_X = 0,
-            GYRO_Y = 1,
-            GYRO_Z = 2,
-            ACC_X = 3,
-            ACC_Y = 4,
-            ACC_Z = 5,
-            TEMP = 6,
-            INCL_A = 7,
-            INCL_B = 8
-        };
-
-
+        private const int amountPoints = 60;
+        private static InfluxDBClient influxDBClient;
+        private string Bucket = "Bridgescout";
+        private string Org_id = "cda037e02dd0cf48";
+        private char[] Token = "VkhsECxCQoHqFMvMmuU3Ui3s5XL1q3DANTDKuXJEvqc6smmx3G713LBeUeMiaTQzHOvOvAispoYJRfccdtxSSQ==".ToCharArray();
 
         public void initDB()
         {
             influxDBClient = InfluxDBClientFactory.Create("http://localhost:9999", Token);
-            System.IO.File.WriteAllText(@"C:\Users\Kees\Desktop\cSharp\UDP-Test\UDP-Test\queries.txt", string.Empty);
-            //writeApi = influxDBClient.GetWriteApi();
         }
 
-        public void SendToDatabase(IC_type ic_type, int ic_number, Data_type data_type, int data)
+        public void SendArrayToDatabase(int ic_number, enums.Data_type data_type, int data, int atribute)
         {
 
             using (WriteApi writeApi = influxDBClient.GetWriteApi())
@@ -65,12 +37,63 @@ namespace UDP_Test
                 string[] queryStrings = new String[amountPoints]; ;
                 for (int i = 0; i < amountPoints; i++)
                 {
-                    queryStrings[i] = "sensor_data,id=" + ic_number + ",ic_type=" + ic_type + ",data_type=" + data_type + " data=" + data;
+                    queryStrings[i] = "sensor_data,id=" + ic_number + ",ic_type=" + determineSensorType(ic_number) + ",data_type=" + data_type + " data=" + data;
                 }
                 writeApi.WriteRecords(Bucket, Org_id, WritePrecision.Ns, queryStrings);
             }
-            //influxDBClient.Dispose();
+            influxDBClient.Dispose();
         }
 
+        public void SendToDatabase(int ic_number, enums.Data_type data_type, int data, int atribute)
+        {
+
+            using (WriteApi writeApi = influxDBClient.GetWriteApi())
+            {
+                // Write by LineProtocol
+                string queryString = "sensor_data,id=" + ic_number + ",ic_type=" + determineSensorType(ic_number) + ",data_type=" + data_type + " data=" + data;
+                writeApi.WriteRecord(Bucket, Org_id, WritePrecision.Ns, queryString);
+            }
+            influxDBClient.Dispose();
+        }
+
+        private enums.Data_type determineSensorType(int inputId)
+        {
+            const int amount_BMI55 = 8;
+            const int amount_SCA103T = 8;
+            const int amount_BMI085 = 1;
+            const int amount_LMS6DSO = 1;
+            const int amount_MS5611 = 1;
+            int count = 0;
+            //enums.Data_type type = 0;
+
+ 
+            if (inputId >= 0 & inputId < amount_BMI55)
+            {
+                return (enums.Data_type)0;
+            }
+            count += amount_BMI55;
+            if (inputId >= count & inputId < (count + amount_SCA103T))
+            {
+                return (enums.Data_type)1;
+            }
+            count += amount_SCA103T;
+            if (inputId >= count & inputId < (count + amount_BMI085))
+            {
+                return (enums.Data_type)2;
+            }
+            count += amount_BMI085;
+            if (inputId >= count & inputId < (count + amount_LMS6DSO))
+            {
+                return (enums.Data_type)3;
+            }
+            count += amount_LMS6DSO;
+            if (inputId >= count & inputId < (count + amount_MS5611))
+            {
+                return (enums.Data_type)4;
+            }
+
+            return  (enums.Data_type)5;
+
+        }
     }
 }
