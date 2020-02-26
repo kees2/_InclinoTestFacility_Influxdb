@@ -22,10 +22,10 @@ namespace UDP_Test
 
         private static Mutex mut = new Mutex();
         private const int numIterations = 8;
-        private const int numThreads = 3;
+        private const int numThreads = 2;
         private const int maxDataId = 6;
         
-        private static Receive.dataMessage[] messageBuffer = new Receive.dataMessage[300];
+        private static Receive.dataMessage[] messageBuffer = new Receive.dataMessage[5000];
         static int writePointer = 0;
         static int readPointer = 0;
 
@@ -35,6 +35,7 @@ namespace UDP_Test
 
         private const int amountIMUs = 10;
         private const int amountDataTypes = 6;
+        private const int amountAttributes = 4;
 
         Influxdb influx = new Influxdb();
 
@@ -63,20 +64,10 @@ namespace UDP_Test
         //static
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Influxdb influx = new Influxdb();
-            for (int i = 0; i < amountIMUs; i++)
-            {
-                for (int j = 0; j < amountDataTypes; j++)
-                {
-                    
-                    //influx.SendToDatabase(dataProcessor.IMUS[i].data[j].determineMin(), (enums.Data_type)j, (byte)dataProcessor.IMUS[i].SensorId, 1);//Nummers verranderen naar enums
-                    //influx.SendToDatabase(dataProcessor.IMUS[i].data[j].determineMax(), (enums.Data_type)j, (byte)dataProcessor.IMUS[i].SensorId, 2);
-                    //influx.SendToDatabase(dataProcessor.IMUS[i].data[j].calcAverage(), (enums.Data_type)j, (byte)dataProcessor.IMUS[i].SensorId, 3);
-                    //influx.SendToDatabase(dataProcessor.IMUS[i].data[j].calcAverageError(), (enums.Data_type)j, (byte)dataProcessor.IMUS[i].SensorId, 4);
-                    
-                }
-            }
+            influx.sendIMUData(dataProcessor.IMUS, amountIMUs, amountDataTypes, amountAttributes);        
+            //Leegmaken data arrays(resetten)
         }
+
 
         private databaseMessage makePackage(int data, byte Data_type, byte Sensor_Id, byte attribute)
         {
@@ -98,17 +89,18 @@ namespace UDP_Test
                 newThread.Name = String.Format("ThreadReceive{0}", i + 1);
                 newThread.Start();
             }
-            for (int i = 0; i < 1; i++)
+
+            /*for (int i = 0; i < (numThreads + 5); i++)
             {
                 Thread newThread = new Thread(new ThreadStart(ThreadProcSend));
-                newThread.Name = String.Format("ThreadSend{0}", i + (1 + 1));
+                newThread.Name = String.Format("ThreadSend{0}", (i + 1));
                 newThread.Start();
-            }
+            }*/
         }
                               
         private static void ThreadProcReceive()
         {
-            for (int i = 0; i < numIterations; i++)
+            while (true)
             {
                 dataReceiver();
             }
@@ -116,15 +108,18 @@ namespace UDP_Test
 
         private static void ThreadProcSend()
         {
-            for (int i = 0; i < numIterations; i++)
-            {
+            while (true) { 
                 databaseSend();
             }
+                
         }
 
         private static void dataReceiver()
         {
             Receive.dataMessage message = receiver.receiveData();
+
+            Influxdb influx = new Influxdb();
+            influx.initDB();
 
             // Wait until it is safe to enter.
             Console.WriteLine("{0} is requesting the mutex",
@@ -141,11 +136,11 @@ namespace UDP_Test
                 //The data is not putten in the message buffer because this data comes in at 1000 samples per second and needs to be send at 1 sample per second
                 dataProcessor.addData(message.Sensor_Id, message.Data_type, message.data);
             }
-            else
+            /*else
             {
                 messageBuffer[writePointer] = message;
                 writePointer++;
-            }
+            }*/
             Console.WriteLine("{0} is leaving the protected area",
                 Thread.CurrentThread.Name);
 
@@ -153,15 +148,25 @@ namespace UDP_Test
             mut.ReleaseMutex();
             Console.WriteLine("{0} has released the mutex",
                 Thread.CurrentThread.Name);
+
+            influx.SendToDatabase(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, 0);//Nummers verranderen naar enums
+
+            Console.WriteLine("writepointer {0}",
+            writePointer);
         }
 
         private static void databaseSend()
         {
+            if(readPointer >= writePointer)
+            {
+
+            }
             while(readPointer >= writePointer)
             {
             }
             Receive.dataMessage message;
             Influxdb influx = new Influxdb();
+            influx.initDB();
 
             // Wait until it is safe to enter.
             Console.WriteLine("{0} is requesting the mutex",
@@ -184,6 +189,9 @@ namespace UDP_Test
                 Thread.CurrentThread.Name);
 
             influx.SendToDatabase(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, 0);//Nummers verranderen naar enums
+
+            Console.WriteLine("readpointer {0}",
+            readPointer);
         }
     }
 }

@@ -7,11 +7,13 @@ using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
-
 namespace UDP_Test
 {
     public class Receive
     {
+        const int UDPBytes = 3;
+
+
         public struct dataMessage
         {
             public int data;
@@ -53,9 +55,9 @@ namespace UDP_Test
             int size = Marshal.SizeOf(str);
             IntPtr ptr = Marshal.AllocHGlobal(size);
 
-            byte[] dst = new byte[arr.Length - 3];
+            byte[] dst = new byte[arr.Length - UDPBytes];//Min de eerste 3 UDP bytes
     
-            Array.Copy(arr, 3, dst, 0, dst.Length);
+            Array.Copy(arr, UDPBytes, dst, 0, dst.Length);
 
             Marshal.Copy(dst, 0, ptr, size);
 
