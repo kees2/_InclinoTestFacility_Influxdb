@@ -45,22 +45,25 @@ namespace UDP_Test
             //8 = BMI085
             //9 = LMS6DSO
 
-            if(0 < Sensor_Id & Sensor_Id < 8)
+            imus[Sensor_Id].addData(Data_type, data);
+
+            /*
+            if(Sensor_Id < 8)
             {
                 imus[Sensor_Id].addData(Data_type, data);
             }
-            else if (Sensor_Id == 9)
+            else if (Sensor_Id == 8)
             {
                 imus[8].addData(Data_type, data);
             }
-            else if (Sensor_Id == 10)
+            else if (Sensor_Id == 9)
             {
                 imus[9].addData(Data_type, data);
             }
             else
             {
                 Console.WriteLine("SensorId does not point to an IMU");
-            }
+            }*/
 
         }
 

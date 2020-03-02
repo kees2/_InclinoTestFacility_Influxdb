@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Diagnostics;
 
 
 namespace UDP_Test
@@ -19,16 +20,8 @@ namespace UDP_Test
             public byte Attribute;
         };
 
-
-        private static Mutex mut = new Mutex();
-        private const int numIterations = 8;
-        private const int numThreads = 1;
+        private const int numThreads = 4;
         private const int maxDataId = 6;
-        
-        private static Receive.dataMessage[] messageBuffer = new Receive.dataMessage[5000];
-        static int writePointer = 0;
-        static int readPointer = 0;
-
         
         static Receive receiver = new Receive();
         private static DataProcessor dataProcessor = new DataProcessor();
@@ -49,7 +42,6 @@ namespace UDP_Test
             receiver.initUDP();
             makeThreads();
             influx.initDB();
-            dataProcessor.IMUS[0].addData(0, 0);
             InitTimer();
         }
 
@@ -64,22 +56,12 @@ namespace UDP_Test
         //static
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
             fillDummyData();
             influx.sendIMUData(dataProcessor.IMUS, amountIMUs, amountDataTypes, amountAttributes);
             dataProcessor.resetIMUs();
-        }
-
-
-        private databaseMessage makePackage(int data, byte Data_type, byte Sensor_Id, byte attribute)
-        {
-            databaseMessage packet = new databaseMessage();
-
-            packet.data = data;
-            packet.Data_type = Data_type;
-            packet.Sensor_Id = Sensor_Id;
-            packet.Attribute = attribute;
-
-            return packet;
+            stopwatch.Stop();
+            Console.WriteLine(stopwatch.ElapsedMilliseconds);
         }
 
         private void makeThreads()
@@ -90,13 +72,6 @@ namespace UDP_Test
                 newThread.Name = String.Format("ThreadReceive{0}", i + 1);
                 newThread.Start();
             }
-
-            /*for (int i = 0; i < (numThreads + 5); i++)
-            {
-                Thread newThread = new Thread(new ThreadStart(ThreadProcSend));
-                newThread.Name = String.Format("ThreadSend{0}", (i + 1));
-                newThread.Start();
-            }*/
         }
                               
         private static void ThreadProcReceive()
@@ -107,14 +82,6 @@ namespace UDP_Test
             }
         }
 
-        private static void ThreadProcSend()
-        {
-            while (true) { 
-                databaseSend();
-            }
-                
-        }
-
         private static void dataReceiver()
         {
             Receive.dataMessage message = receiver.receiveData();
@@ -123,7 +90,6 @@ namespace UDP_Test
             influx.initDB();
 
             // Wait until it is safe to enter.
-            mut.WaitOne();
             if(message.Data_type < maxDataId)
             {
                 //Process acc and gyrodata so that average error can be calculated
@@ -132,32 +98,9 @@ namespace UDP_Test
             }
             else
             {
-                messageBuffer[writePointer] = message;
-                writePointer++;
-            }
-
-            mut.ReleaseMutex();
-            influx.SendToDatabase(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, 0);//Nummers verranderen naar enums
-        }
-
-        private static void databaseSend()
-        {
-            while(readPointer >= writePointer)
-            {
-            }
-            Receive.dataMessage message;
-            Influxdb influx = new Influxdb();
-            influx.initDB();
-            mut.WaitOne();
-
-            // Place code to access non-reentrant resources here.
-            message = messageBuffer[readPointer];
-            readPointer += 1;
-
-            // Release the Mutex.
-            mut.ReleaseMutex();
-
-            influx.SendToDatabase(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, 0);//Nummers verranderen naar enums
+                //Hier data toevoegen voor temperatuur, barometer etc.
+                influx.SendToDatabase(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, 0);//Nummers verranderen naar enums
+            }            
         }
 
         public void fillDummyData()

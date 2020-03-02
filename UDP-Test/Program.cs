@@ -9,40 +9,20 @@ namespace UDP_Test
 
         static void Main(string[] args)
         {
-            //DataHandler handler = new DataHandler();
-            Receive.dataMessage test;
-            Influxdb database = new Influxdb();
-            database.initDB();
-
-            DataProcessor dataProcessor = new DataProcessor();
-
-            for (int i = 0; i < 10; i++)
-            {
-                for (int j = 0; j < 6; j++)
-                {
-                    for (int k = 1; i <= 4; i++)
-                    {
-                        dataProcessor.addData(i, j, (i * j * k));
-                    }
-                }
-            }
-
-            Receive.dataMessage erwin;
-            Stopwatch stopwatch;
+            DataHandler handler = new DataHandler();
 
             int count = 0;
             while (true)
             {            
-                stopwatch = Stopwatch.StartNew(); //creates and start the instance of Stopwatch
-                System.Threading.Thread.Sleep(700);
-                database.sendIMUData(dataProcessor.IMUS, 10, 6, 4);
-                stopwatch.Stop();
-                Console.WriteLine(stopwatch.ElapsedMilliseconds);
             }
         }
     }
 }
 
+
+
+
+//Dit is voor het uitlezen van Erwin zijn data
 
 /*
 stopwatch = Stopwatch.StartNew();
