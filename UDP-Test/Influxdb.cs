@@ -11,17 +11,19 @@ using Task = System.Threading.Tasks.Task;
 using InfluxDB.LineProtocol.Client;
 using InfluxDB.LineProtocol.Payload;
 using System.Threading;
+using System.Diagnostics;
+using System.Globalization;
 
 
 namespace UDP_Test
 {
     class Influxdb
     {
-        private const int amountPoints = 60;
         private static InfluxDBClient influxDBClient;
-        private string Bucket = "Bridgescout";
-        private string Org_id = "cda037e02dd0cf48";
-        private char[] Token = "VkhsECxCQoHqFMvMmuU3Ui3s5XL1q3DANTDKuXJEvqc6smmx3G713LBeUeMiaTQzHOvOvAispoYJRfccdtxSSQ==".ToCharArray();
+        private readonly string Bucket = "Bridgescout";
+        private readonly string Org_id = "Sensormaritime";
+        private readonly char[] Token = "xPy5iVOvyz2fcnWlXh4rFGiIYRVGOLX7_uteqKLmgls9FordLmqbllBXLwTkd7xc85ruet8p4BidDeoXYx-Ohw==".ToCharArray();
+        int dataCounter = 0;
 
         public void initDB()
         {
@@ -30,42 +32,44 @@ namespace UDP_Test
 
         public void sendIMUData(IMU[] imus, int amountImus, int amountDataTypes, int amountAtributes)
         {
-            //influx.SendToDatabase(dataProcessor.IMUS[i].data[j].determineMin(), (enums.Data_type)j, (byte)dataProcessor.IMUS[i].SensorId, 1);//Nummers verranderen naar enums
             int dataAmount = amountImus * amountDataTypes * amountAtributes;
-            string[] queryStrings = new String[dataAmount]; ;
+            string[] queryStrings = new String[dataAmount];
+            string queryString = "";
             int index = 0;
             int indexi = 0;
             int indexj = 0;
+
             for (int i = 0; i < amountDataTypes*amountImus*amountAtributes; i+=(amountDataTypes*amountAtributes))
             {
                 indexj = 0;
                 for (int j = 0; j < amountDataTypes* amountAtributes; j+= amountAtributes)
                 {
+
                     for (int k = 0; k < amountAtributes; k++)
                     {
                         index = i+j+k;
                         queryStrings[index] = "sensor_data,id=" + imus[indexi].SensorId + ",ic_type=" + determineSensorType(imus[indexi].SensorId) + ",data_type=" + (enums.Data_type)indexj +
-                            " data=" + imus[indexi].data[indexj].determineMin() + " attribute=" + (k+1);//add one to k because value 0 is the standard value
+                            ",attribute=" + (enums.Atribute_type)1 + " data=" + imus[0].data[0].determineMin();//add one to k because value 0 is the standard value
                     }
                     indexj++;
                 }
                 indexi++;
             }
+            dataCounter++;
             using (WriteApi writeApi = influxDBClient.GetWriteApi())
             {
                 writeApi.WriteRecords(Bucket, Org_id, WritePrecision.Ns, queryStrings);
-                influxDBClient.Dispose();
             }
         }
 
-        public void SendArrayToDatabase(int ic_number, enums.Data_type data_type, int data, int atribute)
+        public void SendArrayToDatabase(int ic_number, enums.Data_type data_type, int data, int atribute, int amount)
         {
 
             using (WriteApi writeApi = influxDBClient.GetWriteApi())
             {
                 // Write by LineProtocol
-                string[] queryStrings = new String[amountPoints];
-                for (int i = 0; i < amountPoints; i++)
+                string[] queryStrings = new String[amount];
+                for (int i = 0; i < amount; i++)
                 {
                     queryStrings[i] = "sensor_data,id=" + ic_number + ",ic_type=" + determineSensorType(ic_number) + ",data_type=" + data_type + " data=" + data;
                 }
@@ -85,21 +89,6 @@ namespace UDP_Test
             }
             influxDBClient.Dispose();
         }
-
-
-        public void SendToDatabasePoint()
-        {
-            using (var writeApi = influxDBClient.GetWriteApi())
-            {
-                var point = PointData.Measurement("temperature")
-                .Tag("location", "west")
-                .Field("value", 55D)
-                .Timestamp(DateTime.UtcNow.AddSeconds(-10), WritePrecision.Ns);
-
-                writeApi.WritePoint(Bucket, Org_id, point);
-
-            }
-        }   
 
         private enums.IC_type determineSensorType(int inputId)
         {

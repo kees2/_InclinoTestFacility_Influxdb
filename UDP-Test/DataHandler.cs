@@ -22,7 +22,7 @@ namespace UDP_Test
 
         private static Mutex mut = new Mutex();
         private const int numIterations = 8;
-        private const int numThreads = 2;
+        private const int numThreads = 1;
         private const int maxDataId = 6;
         
         private static Receive.dataMessage[] messageBuffer = new Receive.dataMessage[5000];
@@ -64,8 +64,9 @@ namespace UDP_Test
         //static
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            influx.sendIMUData(dataProcessor.IMUS, amountIMUs, amountDataTypes, amountAttributes);        
-            //Leegmaken data arrays(resetten)
+            fillDummyData();
+            influx.sendIMUData(dataProcessor.IMUS, amountIMUs, amountDataTypes, amountAttributes);
+            dataProcessor.resetIMUs();
         }
 
 
@@ -122,76 +123,55 @@ namespace UDP_Test
             influx.initDB();
 
             // Wait until it is safe to enter.
-            Console.WriteLine("{0} is requesting the mutex",
-                              Thread.CurrentThread.Name);
             mut.WaitOne();
-
-            Console.WriteLine("{0} has entered the protected area",
-                              Thread.CurrentThread.Name);
-
-            // Place code to access non-reentrant resources here.
             if(message.Data_type < maxDataId)
             {
                 //Process acc and gyrodata so that average error can be calculated
                 //The data is not putten in the message buffer because this data comes in at 1000 samples per second and needs to be send at 1 sample per second
                 dataProcessor.addData(message.Sensor_Id, message.Data_type, message.data);
             }
-            /*else
+            else
             {
                 messageBuffer[writePointer] = message;
                 writePointer++;
-            }*/
-            Console.WriteLine("{0} is leaving the protected area",
-                Thread.CurrentThread.Name);
+            }
 
-            // Release the Mutex.
             mut.ReleaseMutex();
-            Console.WriteLine("{0} has released the mutex",
-                Thread.CurrentThread.Name);
-
             influx.SendToDatabase(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, 0);//Nummers verranderen naar enums
-
-            Console.WriteLine("writepointer {0}",
-            writePointer);
         }
 
         private static void databaseSend()
         {
-            if(readPointer >= writePointer)
-            {
-
-            }
             while(readPointer >= writePointer)
             {
             }
             Receive.dataMessage message;
             Influxdb influx = new Influxdb();
             influx.initDB();
-
-            // Wait until it is safe to enter.
-            Console.WriteLine("{0} is requesting the mutex",
-                              Thread.CurrentThread.Name);
             mut.WaitOne();
-
-            Console.WriteLine("{0} has entered the protected area",
-                              Thread.CurrentThread.Name);
 
             // Place code to access non-reentrant resources here.
             message = messageBuffer[readPointer];
             readPointer += 1;
 
-            Console.WriteLine("{0} is leaving the protected area",
-                Thread.CurrentThread.Name);
-
             // Release the Mutex.
             mut.ReleaseMutex();
-            Console.WriteLine("{0} has released the mutex",
-                Thread.CurrentThread.Name);
 
             influx.SendToDatabase(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, 0);//Nummers verranderen naar enums
+        }
 
-            Console.WriteLine("readpointer {0}",
-            readPointer);
+        public void fillDummyData()
+        {
+            for (int i = 0; i < 10; i++)
+            {
+                for (int j = 0; j < 6; j++)
+                {
+                    for (int k = 1; i <= 4; i++)
+                    {
+                        dataProcessor.addData(i, j, (i * j * k));
+                    }
+                }
+            }
         }
     }
 }

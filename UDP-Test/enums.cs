@@ -45,6 +45,15 @@ namespace UDP_Test
             INCL_B = 8
         };
 
+        public enum Atribute_type
+        {
+            standard = 0,
+            Min_value = 1,
+            Max_value = 2,
+            AVG = 3,
+            AVG_ERROR = 4
+        };
+
 
     }
 }

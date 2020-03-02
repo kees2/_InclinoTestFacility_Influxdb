@@ -62,6 +62,7 @@ namespace UDP_Test
             }
             return total / arraySize;
         }
+
         public int determineMin()
         {
             int minValue = 0;

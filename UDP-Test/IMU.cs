@@ -24,19 +24,18 @@ namespace UDP_Test
             }
         }
 
-        public void calcData()
-        {
-            for(int i = 0; i < amountIMUAtributes; i++)
-            {
-                data[i].calculateData();
-            }
-        }
-
         public void addData(int Data_type, int newData)
         {
             data[Data_type].addData(newData);
         }
         
+        public void resetIMUData()
+        {
+            for (int i = 0; i < amountIMUAtributes; i++)
+            {
+                data[i].reset();
+            }
+        }
 
 
 
