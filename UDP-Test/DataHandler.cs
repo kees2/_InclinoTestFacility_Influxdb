@@ -26,11 +26,12 @@ namespace UDP_Test
         static Receive receiver = new Receive();
         private static DataProcessor dataProcessor = new DataProcessor();
 
-        private const int amountIMUs = 10;
+        private const int amountIMUs = 8;
         private const int amountDataTypes = 6;
         private const int amountAttributes = 4;
 
         Influxdb influx = new Influxdb();
+        Influxdb1_7 influx17 = new Influxdb1_7();
 
         public DataHandler()
         {
@@ -41,7 +42,7 @@ namespace UDP_Test
         {
             receiver.initUDP();
             makeThreads();
-            influx.initDB();
+            influx17.initDB();
             InitTimer();
         }
 
@@ -57,9 +58,10 @@ namespace UDP_Test
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            fillDummyData();
-            influx.sendIMUData(dataProcessor.IMUS, amountIMUs, amountDataTypes, amountAttributes);
+            //fillDummyData();
+            influx17.addIMUs(dataProcessor.IMUS, amountIMUs);
             dataProcessor.resetIMUs();
+            influx17.sendData();
             stopwatch.Stop();
             Console.WriteLine(stopwatch.ElapsedMilliseconds);
         }
@@ -74,7 +76,7 @@ namespace UDP_Test
             }
         }
                               
-        private static void ThreadProcReceive()
+        private  void ThreadProcReceive()
         {
             while (true)
             {
@@ -82,25 +84,21 @@ namespace UDP_Test
             }
         }
 
-        private static void dataReceiver()
+        private  void dataReceiver()
         {
             Receive.dataMessage message = receiver.receiveData();
 
-            Influxdb influx = new Influxdb();
-            influx.initDB();
-
-            // Wait until it is safe to enter.
             if(message.Data_type < maxDataId)
             {
                 //Process acc and gyrodata so that average error can be calculated
-                //The data is not putten in the message buffer because this data comes in at 1000 samples per second and needs to be send at 1 sample per second
                 dataProcessor.addData(message.Sensor_Id, message.Data_type, message.data);
             }
             else
             {
                 //Hier data toevoegen voor temperatuur, barometer etc.
-                influx.SendToDatabase(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, 0);//Nummers verranderen naar enums
-            }            
+                influx17.addData(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data);
+                Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
+            }       
         }
 
         public void fillDummyData()
@@ -109,10 +107,8 @@ namespace UDP_Test
             {
                 for (int j = 0; j < 6; j++)
                 {
-                    for (int k = 1; i <= 4; i++)
-                    {
-                        dataProcessor.addData(i, j, (i * j * k));
-                    }
+                     dataProcessor.addData(i, j, 333);
+                    dataProcessor.addData(i, j, 667);
                 }
             }
         }

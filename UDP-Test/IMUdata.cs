@@ -10,20 +10,11 @@ namespace UDP_Test
     {
 
         private const int bufferSize = 1000;
-        public int[] dataArray { get; set; }//Dit is volgens https://www.w3schools.com/cs/cs_properties.asp hetzelfde als een normale getter setter
-        private int arraySize;
-
-        private int min;
-        private int max;
-        private int avg;
-        private int avgerror;
+        public int[] dataArray { get; set; }
+        public int arraySize { get; set; }
 
         public int[] DataArray { get; set; }
 
-        public int Min { get; set; }
-        public int Max { get; set; }
-        public int Avg { get; set; }
-        public int Avgerror { get; set; }
 
         public IMUdata(int dataType)
         {
@@ -43,6 +34,7 @@ namespace UDP_Test
             arraySize++;
         }
 
+        //als arraysize 0 is afvangen
         public int calcAverage()
         {
             int total = 0;
@@ -50,7 +42,14 @@ namespace UDP_Test
             {
                 total += dataArray[i];
             }
-            return total / arraySize;
+            if(arraySize != 0)
+            {
+                return total / arraySize;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public int calcAverageError()
@@ -58,26 +57,42 @@ namespace UDP_Test
             int total = 0;
             for (int i = 0; i < arraySize; i++)
             {
-                total = Math.Abs(dataArray[i]);
+                total += Math.Abs(dataArray[i]);
             }
-            return total / arraySize;
+            if (arraySize != 0)
+            {
+                return total / arraySize;
+            }
+            else
+            {
+                return 0;
+            }
         }
 
         public int determineMin()
         {
-            int minValue = 0;
-            for (int i = 0; i < arraySize; i++)
+            if(arraySize != 0)
             {
-                if (dataArray[i] < minValue)
+                int minValue = int.MaxValue;
+                for (int i = 0; i < arraySize; i++)
                 {
-                    minValue = dataArray[i];
+                    if (dataArray[i] < minValue)
+                    {
+                        minValue = dataArray[i];
+                    }
                 }
+                return minValue;
             }
-            return minValue;
+            else
+            {
+                return 0;
+            }
+          
         }
+
         public int determineMax()
         {
-            int maxValue = 0;
+            int maxValue = int.MinValue;
             for (int i = 0; i < arraySize; i++)
             {
                 if(dataArray[i] > maxValue)
@@ -86,14 +101,6 @@ namespace UDP_Test
                 }
             }
             return maxValue;
-        }
-
-        public void calculateData()
-        {
-            min = determineMin();
-            max = determineMax();
-            avg = calcAverage();
-            avgerror = calcAverageError();
         }
 
     }

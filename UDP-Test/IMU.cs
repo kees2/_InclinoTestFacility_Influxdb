@@ -11,10 +11,7 @@ namespace UDP_Test
         
         private const int amountIMUAtributes = 6;
         public IMUdata[] data = new IMUdata[amountIMUAtributes] ;
-        private int sensorId;
-       
-        //public IMUdata[] Data { get; set; }
-        public int SensorId { get; set; }
+        public int SensorId{ get; set; }       
 
         public IMU()
         {

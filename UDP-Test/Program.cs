@@ -9,14 +9,43 @@ namespace UDP_Test
 
         static void Main(string[] args)
         {
-            DataHandler handler = new DataHandler();
+            /*
+            Influxdb1_7 database = new Influxdb1_7();
+            IMU imu = new IMU();
+            imu.SensorId = 1;
+            imu.data[0].dataArray[0] = 420;
+            database.initDB();
+            database.sendData(imu);
+            */
 
-            int count = 0;
+            DataHandler datahandler = new DataHandler();
+            Console.WriteLine("Schrijfactie voltooid");
             while (true)
-            {            
+            {
+
             }
+
+            /*
+            int count = 0;
+            Stopwatch stopwatch;
+            Receive receiver = new Receive();
+            receiver.initUDP();
+            Receive.dataMessage erwin;
+            while (true)
+            {
+                stopwatch = Stopwatch.StartNew();
+                erwin = receiver.receiveData();
+                Console.WriteLine(erwin.data.ToString("X"));
+                stopwatch.Stop();
+                count++;
+                if (count == 12)
+                {
+                    count = 0;
+                    Console.WriteLine("***********************************************");
+                }
+            }*/
         }
-    }
+    }   
 }
 
 

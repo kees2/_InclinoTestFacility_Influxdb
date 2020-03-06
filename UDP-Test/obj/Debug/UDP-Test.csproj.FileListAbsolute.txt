@@ -139,8 +139,6 @@ C:\Users\Kees\Desktop\cSharp\UDP-Test\UDP-Test\bin\Debug\System.Threading.Tasks.
 C:\Users\Kees\Desktop\cSharp\UDP-Test\UDP-Test\obj\Debug\UDP-Test.csproj.CopyComplete
 C:\Users\Kees\Desktop\cSharp\UDP-Test\UDP-Test\bin\Debug\InfluxDB.Collector.dll
 C:\Users\Kees\Desktop\cSharp\UDP-Test\UDP-Test\bin\Debug\InfluxDB.LineProtocol.dll
-C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\obj\Debug\UDP-Test.exe.config
-C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\obj\Debug\UDP-Test.csproj.CoreCompileInputs.cache
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\bin\Debug\UDP-Test.exe.config
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\bin\Debug\UDP-Test.exe
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\bin\Debug\UDP-Test.pdb
@@ -276,6 +274,8 @@ C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\bin\Debug\
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\bin\Debug\System.Reactive.xml
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\bin\Debug\System.Runtime.CompilerServices.Unsafe.xml
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\bin\Debug\System.Threading.Tasks.Extensions.xml
+C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\obj\Debug\UDP-Test.exe.config
+C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\obj\Debug\UDP-Test.csproj.CoreCompileInputs.cache
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\obj\Debug\UDP-Test.csproj.CopyComplete
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\obj\Debug\UDP-Test.exe
 C:\Users\Kees\Documents\GitHub\_InclinoTestFacility_Influxdb\UDP-Test\obj\Debug\UDP-Test.pdb
