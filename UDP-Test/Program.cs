@@ -19,6 +19,8 @@ namespace UDP_Test
             */
 
             DataHandler datahandler = new DataHandler();
+            //datahandler.initDataHandler();
+            //= new DataHandler();
             Console.WriteLine("Schrijfactie voltooid");
             while (true)
             {

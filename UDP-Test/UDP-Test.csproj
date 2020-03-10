@@ -154,7 +154,10 @@
     <Compile Include="DataProcessor.cs" />
     <Compile Include="enums.cs" />
     <Compile Include="IMU.cs" />
-    <Compile Include="IMUdata.cs" />
+    <Compile Include="Data.cs" />
+    <Compile Include="IMUData.cs" />
+    <Compile Include="Inclino.cs" />
+    <Compile Include="InclinoData.cs" />
     <Compile Include="Influxdb.cs" />
     <Compile Include="Influxdb1_7.cs" />
     <Compile Include="Program.cs" />

@@ -6,11 +6,14 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Diagnostics;
 
-
 namespace UDP_Test
 {
     public class DataHandler
     {
+        public int[] testBuffer = new int[100000];
+        int testcounter = 0;
+        int max = 0;
+        int min = 0;
         
         public struct databaseMessage
         {
@@ -20,18 +23,18 @@ namespace UDP_Test
             public byte Attribute;
         };
 
-        private const int numThreads = 4;
-        private const int maxDataId = 6;
-        
-        static Receive receiver = new Receive();
-        private static DataProcessor dataProcessor = new DataProcessor();
+        private const int numThreads = 1;
 
         private const int amountIMUs = 8;
-        private const int amountDataTypes = 6;
-        private const int amountAttributes = 4;
+        private const int amountInclinos = 8;
 
-        Influxdb influx = new Influxdb();
-        Influxdb1_7 influx17 = new Influxdb1_7();
+        //Only needed if using the Influxdb class
+        //private const int amountDataTypes = 6;
+        //private const int amountAttributes = 4;
+
+        static Receive receiver = new Receive();
+        private static DataProcessor dataProcessor = new DataProcessor(amountIMUs, amountInclinos);
+        private Influxdb1_7 influx17 = new Influxdb1_7();
 
         public DataHandler()
         {
@@ -41,8 +44,9 @@ namespace UDP_Test
         public void initDataHandler()
         {
             receiver.initUDP();
-            makeThreads();
             influx17.initDB();
+
+            makeThreads();
             InitTimer();
         }
 
@@ -57,13 +61,13 @@ namespace UDP_Test
         //static
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            //fillDummyData();
-            influx17.addIMUs(dataProcessor.IMUS, amountIMUs);
-            dataProcessor.resetIMUs();
+            //Stopwatch stopwatch = Stopwatch.StartNew();
+            //fillDummyDataInclino();
+            //influx17.addIMUs(dataProcessor.IMUS, amountIMUs);
+            //dataProcessor.resetIMUs();
             influx17.sendData();
-            stopwatch.Stop();
-            Console.WriteLine(stopwatch.ElapsedMilliseconds);
+            //stopwatch.Stop();
+            //Console.WriteLine(stopwatch.ElapsedMilliseconds);
         }
 
         private void makeThreads()
@@ -87,8 +91,18 @@ namespace UDP_Test
         private  void dataReceiver()
         {
             Receive.dataMessage message = receiver.receiveData();
-
-            if(message.Data_type < maxDataId)
+            receiveMessageTest(message);
+            /*
+            Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
+           if (
+                (enums.Data_type)message.Data_type == enums.Data_type.GYRO_X ||
+                (enums.Data_type)message.Data_type == enums.Data_type.GYRO_Y ||
+                (enums.Data_type)message.Data_type == enums.Data_type.GYRO_Z ||
+                (enums.Data_type)message.Data_type == enums.Data_type.ACC_X ||
+                (enums.Data_type)message.Data_type == enums.Data_type.ACC_Y ||
+                (enums.Data_type)message.Data_type == enums.Data_type.ACC_Z ||
+                (enums.Data_type)message.Data_type == enums.Data_type.INCL_A ||
+                (enums.Data_type)message.Data_type == enums.Data_type.INCL_B)
             {
                 //Process acc and gyrodata so that average error can be calculated
                 dataProcessor.addData(message.Sensor_Id, message.Data_type, message.data);
@@ -98,20 +112,68 @@ namespace UDP_Test
                 //Hier data toevoegen voor temperatuur, barometer etc.
                 influx17.addData(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data);
                 Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
-            }       
+            }*/
         }
 
-        public void fillDummyData()
+        public void fillDummyDataIMU()
         {
-            for (int i = 0; i < 10; i++)
+            int amountIMUS = 8;
+            int amountDataTypes = 6;
+
+            for (int i = 0; i < amountIMUS; i++)
             {
-                for (int j = 0; j < 6; j++)
+                for (int j = 0; j < amountDataTypes; j++)
                 {
                      dataProcessor.addData(i, j, 333);
                     dataProcessor.addData(i, j, 667);
                 }
             }
         }
+
+        public void fillDummyDataInclino()
+        {
+            int amountIMUS = 8;
+            int amountDataTypes = 2;
+
+            for (int i = 0; i < amountInclinos; i++)
+            {
+                for (int j = 0; j < amountDataTypes; j++)
+                {
+                    dataProcessor.addData(i+ amountIMUS, j+6, 333);
+                    dataProcessor.addData(i+ amountIMUS, j+6, 667);
+                }
+            }
+        }
+
+        public void receiveMessageTest(Receive.dataMessage message)
+        {
+            if(message.Data_type == 0)
+            {
+                int difference = testcounter - message.data;
+                if (difference != 0)
+                {
+                    if (difference > max)
+                    {
+                        max = difference;
+                    }
+                    if (difference < min)
+                    {
+                        min = difference;
+                    }
+                }
+                if (testcounter == 75999)
+                {
+                    testcounter = 0;
+                }
+                testcounter++;
+                Console.WriteLine("Min = {0}, Max = {1}", min, max);
+                testBuffer[testcounter] = message.data;
+            }
+            
+    
+
+        }
+
     }
 }
 

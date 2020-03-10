@@ -10,18 +10,18 @@ namespace UDP_Test
     {
         
         private const int amountIMUAtributes = 6;
-        public IMUdata[] data = new IMUdata[amountIMUAtributes] ;
+        public IMUData[] data = new IMUData[amountIMUAtributes];
         public int SensorId{ get; set; }       
 
         public IMU()
         {
             for(int i = 0; i < amountIMUAtributes; i++)
             {
-                data[i] = new IMUdata(i);
+                data[i] = new IMUData();
             }
         }
 
-        public void addData(int Data_type, int newData)
+        public void addIMUData(int Data_type, int newData)
         {
             data[Data_type].addData(newData);
         }

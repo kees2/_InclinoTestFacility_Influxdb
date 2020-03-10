@@ -8,9 +8,11 @@ namespace UDP_Test
 {
     public class DataProcessor
     {
-        //dit aanmaken in de constructor
-        private const int amountIMU = 10;
-        private IMU[] imus = new IMU[amountIMU];
+
+        private int amountIMU;
+        private int amountInclino;
+        private IMU[] imus;
+        private Inclino[] inclinos;
 
         private const int highestDataId = 6;
         
@@ -20,33 +22,51 @@ namespace UDP_Test
             set { imus = IMUS; }
         }
 
-        public DataProcessor()
+        public DataProcessor(int amountIMUSetValue, int amountInclinoSetValue)
         {
-            
-            for(int i = 0; i < amountIMU; i++)
-            {
-                imus[i] = new IMU();
-            }
+            //Initialize the amount of IMU that are needed 
+            amountIMU = amountIMUSetValue;
+            amountInclino = amountInclinoSetValue;
+            imus = new IMU[amountIMU];
+            inclinos = new Inclino[amountInclino];
             for (int i = 0; i < amountIMU; i++)
             {
+                imus[i] = new IMU();
                 imus[i].SensorId = i;
+            }
+            for (int i = 0; i < amountInclinoSetValue; i++)
+            {
+                inclinos[i] = new Inclino();
+                inclinos[i].SensorId = i + amountIMU;
             }
         }
         
         public void addData(int Sensor_Id, int Data_type, int data)
         {
-            //0-7 = BMI055
-            //8 = BMI085
-            //9 = LMS6DSO
-            if (Sensor_Id < amountIMU)
+            //work in progress
+            //for loop waarbij alle imu sensoren afgegaan worden
+            //Deze if statements kunnen misschien beter in de DataHandler
+            if (
+                (enums.Data_type)Data_type == enums.Data_type.GYRO_X ||
+                (enums.Data_type)Data_type == enums.Data_type.GYRO_Y ||
+                (enums.Data_type)Data_type == enums.Data_type.GYRO_Z ||
+                (enums.Data_type)Data_type == enums.Data_type.ACC_X ||
+                (enums.Data_type)Data_type == enums.Data_type.ACC_Y ||
+                (enums.Data_type)Data_type == enums.Data_type.ACC_Z )
             {
-                imus[Sensor_Id].addData(Data_type, data);
+                imus[Sensor_Id].addIMUData(Data_type, data);
+            }
+            else if(
+                (enums.Data_type)Data_type == enums.Data_type.INCL_A ||
+                (enums.Data_type)Data_type == enums.Data_type.INCL_B)
+            {
+                inclinos[Sensor_Id - amountIMU].addInclinoData(Data_type, data);
             }
             else
             {
-                Console.WriteLine("SensorId does not point to an IMU");
+                Console.WriteLine("Error SensorId is to high");
             }
-
+            
         }
 
         public void resetIMUs()
