@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace UDP_Test
 {
-    class InclinoData : Data
+    public class InclinoData : Data
     {
 
         public const double INCLINOMAXVOLTAGE = 3.3;

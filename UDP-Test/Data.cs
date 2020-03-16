@@ -9,7 +9,7 @@ namespace UDP_Test
     public class Data
     {
 
-        private const int bufferSize = 1500;
+        private const int bufferSize = 1000;
         public int[] dataArray { get; set; }
         public int arraySize { get; set; }
         public int[] DataArray { get; set; }

@@ -14,6 +14,7 @@ namespace UDP_Test
         int testcounter = 0;
         int max = 0;
         int min = 0;
+        int testcounterAmountMessages = 0;
         
         public struct databaseMessage
         {
@@ -25,15 +26,10 @@ namespace UDP_Test
 
         private const int numThreads = 1;
 
-        private const int amountIMUs = 8;
-        private const int amountInclinos = 8;
 
-        //Only needed if using the Influxdb class
-        //private const int amountDataTypes = 6;
-        //private const int amountAttributes = 4;
 
         static Receive receiver = new Receive();
-        private static DataProcessor dataProcessor = new DataProcessor(amountIMUs, amountInclinos);
+        private static DataProcessor dataProcessor = new DataProcessor();
         private Influxdb1_7 influx17 = new Influxdb1_7();
 
         public DataHandler()
@@ -58,16 +54,30 @@ namespace UDP_Test
             timer.Start();
         }
 
-        //static
+        //TODO
+        //Move all functions in this class to dataprocessor
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            //Stopwatch stopwatch = Stopwatch.StartNew();
+            Stopwatch stopwatch = Stopwatch.StartNew();
             //fillDummyDataInclino();
-            //influx17.addIMUs(dataProcessor.IMUS, amountIMUs);
-            //dataProcessor.resetIMUs();
+            influx17.addIMUs(dataProcessor.IMUS, dataProcessor.AmountIMU);
+            influx17.addInclinos(dataProcessor.Inclinos, dataProcessor.AmountInclino);
+
+            for(int i = 0; i < dataProcessor.AmountIMU; i++)
+            {
+                for(int j = 0; j < 6; j++)
+                {
+                    Console.WriteLine("amount data {0}", dataProcessor.IMUS[i].data[j].arraySize);
+                }
+            }
+            Console.WriteLine("amount of messages received {0}", testcounterAmountMessages);
+            testcounterAmountMessages = 0;
+            dataProcessor.resetIMUs();
+            dataProcessor.resetInclinos();
             influx17.sendData();
-            //stopwatch.Stop();
-            //Console.WriteLine(stopwatch.ElapsedMilliseconds);
+            stopwatch.Stop();
+            Console.WriteLine("Time{0}",stopwatch.ElapsedMilliseconds);
+            
         }
 
         private void makeThreads()
@@ -90,29 +100,27 @@ namespace UDP_Test
 
         private  void dataReceiver()
         {
+            Stopwatch stopwatch = Stopwatch.StartNew();
             Receive.dataMessage message = receiver.receiveData();
-            receiveMessageTest(message);
-            /*
-            Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
+            //receiveMessageTest(message);
+            
+            //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
            if (
-                (enums.Data_type)message.Data_type == enums.Data_type.GYRO_X ||
-                (enums.Data_type)message.Data_type == enums.Data_type.GYRO_Y ||
-                (enums.Data_type)message.Data_type == enums.Data_type.GYRO_Z ||
-                (enums.Data_type)message.Data_type == enums.Data_type.ACC_X ||
-                (enums.Data_type)message.Data_type == enums.Data_type.ACC_Y ||
-                (enums.Data_type)message.Data_type == enums.Data_type.ACC_Z ||
-                (enums.Data_type)message.Data_type == enums.Data_type.INCL_A ||
-                (enums.Data_type)message.Data_type == enums.Data_type.INCL_B)
+                (enums.Data_type)message.Data_type == enums.Data_type.TEMP  ||
+                (enums.Data_type)message.Data_type == enums.Data_type.BARO  )
             {
-                //Process acc and gyrodata so that average error can be calculated
-                dataProcessor.addData(message.Sensor_Id, message.Data_type, message.data);
+                 //Hier data toevoegen voor temperatuur, barometer etc.
+                influx17.addData(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, determineSensorType(message.Sensor_Id));
+                //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
             }
             else
             {
-                //Hier data toevoegen voor temperatuur, barometer etc.
-                influx17.addData(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data);
-                Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
-            }*/
+                //Process acc, inclino and gyrodata so that average error can be calculated
+                testcounterAmountMessages++;
+                dataProcessor.addData(message.Sensor_Id, message.Data_type, message.data);  
+            }
+            stopwatch.Stop();
+            Console.WriteLine("ReadTime{0}", stopwatch.ElapsedTicks);
         }
 
         public void fillDummyDataIMU()
@@ -133,14 +141,24 @@ namespace UDP_Test
         public void fillDummyDataInclino()
         {
             int amountIMUS = 8;
+            int amountInclinos = 8;
             int amountDataTypes = 2;
 
             for (int i = 0; i < amountInclinos; i++)
             {
-                for (int j = 0; j < amountDataTypes; j++)
+                for (int j = 7; j < 9; j++)
                 {
-                    dataProcessor.addData(i+ amountIMUS, j+6, 333);
-                    dataProcessor.addData(i+ amountIMUS, j+6, 667);
+                    if(j == 7)
+                    {
+                        dataProcessor.addData(i + amountIMUS, j, 333);
+                        dataProcessor.addData(i + amountIMUS, j, 667);
+                    }
+                    else
+                    {
+                        dataProcessor.addData(i + amountIMUS, j, 1000);
+                        dataProcessor.addData(i + amountIMUS, j, 1000);
+                    }
+                    
                 }
             }
         }
@@ -169,9 +187,19 @@ namespace UDP_Test
                 Console.WriteLine("Min = {0}, Max = {1}", min, max);
                 testBuffer[testcounter] = message.data;
             }
-            
-    
+        }
 
+        private enums.IC_type determineSensorType(int Sensor_id)
+        {
+            if(Sensor_id >=0 && Sensor_id < 8)
+            {
+                return enums.IC_type.BMI55;
+            }
+            else if (Sensor_id >= 8 && Sensor_id < 16)
+            {
+                return enums.IC_type.BMI085;
+            }
+            return (enums.IC_type)Sensor_id;
         }
 
     }

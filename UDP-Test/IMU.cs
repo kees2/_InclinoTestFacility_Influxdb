@@ -11,10 +11,12 @@ namespace UDP_Test
         
         private const int amountIMUAtributes = 6;
         public IMUData[] data = new IMUData[amountIMUAtributes];
-        public int SensorId{ get; set; }       
+        public int SensorId{ get; set; }
+        public enums.IC_type icType;
 
-        public IMU()
+        public IMU(enums.IC_type type)
         {
+            icType = type;
             for(int i = 0; i < amountIMUAtributes; i++)
             {
                 data[i] = new IMUData();

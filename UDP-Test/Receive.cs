@@ -12,6 +12,7 @@ namespace UDP_Test
     public class Receive
     {
         const int UDPBytes = 3;
+        const int messageArraySize = 
 
 
         public struct dataMessage
@@ -46,6 +47,14 @@ namespace UDP_Test
 
             dataMessage test = fromBytes(data);
             return test;  
+        }
+
+        public dataMessage receiveDataArray()
+        {
+            var data = udpServer.Receive(ref remoteEP);
+
+            dataMessage test = fromBytes(data);
+            return test;
         }
 
         private dataMessage fromBytes(byte[] arr)
