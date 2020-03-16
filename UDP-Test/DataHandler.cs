@@ -101,26 +101,34 @@ namespace UDP_Test
         private  void dataReceiver()
         {
             Stopwatch stopwatch = Stopwatch.StartNew();
-            Receive.dataMessage message = receiver.receiveData();
+            //Receive.dataMessage message = receiver.receiveData();
+            Receive.dataMessage[] messages = receiver.receiveDataArray();
             //receiveMessageTest(message);
-            
-            //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
-           if (
-                (enums.Data_type)message.Data_type == enums.Data_type.TEMP  ||
-                (enums.Data_type)message.Data_type == enums.Data_type.BARO  )
+
+            for (int i = 0; i < messages.Length; i++)
             {
-                 //Hier data toevoegen voor temperatuur, barometer etc.
-                influx17.addData(message.Sensor_Id, (enums.Data_type)message.Data_type, message.data, determineSensorType(message.Sensor_Id));
+                if(messages[i].Sensor_Id == 0)
+                {
+                    break;
+                }
                 //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
+                if (
+                    (enums.Data_type)messages[i].Data_type == enums.Data_type.TEMP ||
+                    (enums.Data_type)messages[i].Data_type == enums.Data_type.BARO)
+                {
+                    //Hier data toevoegen voor temperatuur, barometer etc.
+                    influx17.addData(messages[i].Sensor_Id, (enums.Data_type)messages[i].Data_type, messages[i].data, determineSensorType(messages[i].Sensor_Id));
+                    //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
+                }
+                else
+                {
+                    //Process acc, inclino and gyrodata so that average error can be calculated
+                    testcounterAmountMessages++;
+                    dataProcessor.addData(messages[i].Sensor_Id, messages[i].Data_type, messages[i].data);
+                }
+                stopwatch.Stop();
+                Console.WriteLine("ReadTime{0}", stopwatch.ElapsedTicks);
             }
-            else
-            {
-                //Process acc, inclino and gyrodata so that average error can be calculated
-                testcounterAmountMessages++;
-                dataProcessor.addData(message.Sensor_Id, message.Data_type, message.data);  
-            }
-            stopwatch.Stop();
-            Console.WriteLine("ReadTime{0}", stopwatch.ElapsedTicks);
         }
 
         public void fillDummyDataIMU()

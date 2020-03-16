@@ -12,7 +12,7 @@ namespace UDP_Test
     public class Receive
     {
         const int UDPBytes = 3;
-        const int messageArraySize = 
+        int messageArraySize = 0;
 
 
         public struct dataMessage
@@ -36,7 +36,7 @@ namespace UDP_Test
         public dataMessage receiveDataWithResponse()
         {
             var data = udpServer.Receive(ref remoteEP);
-            dataMessage test = fromBytes(data);
+            dataMessage test = fromBytesToMessage(data);
             udpServer.Send(new byte[] { 4, 2, 0 }, 3, remoteEP); // if data is received reply letting the client know that we got his data  \
             return test;
         }
@@ -45,19 +45,19 @@ namespace UDP_Test
         {
             var data = udpServer.Receive(ref remoteEP);
 
-            dataMessage test = fromBytes(data);
+            dataMessage test = fromBytesToMessage(data);
             return test;  
         }
 
-        public dataMessage receiveDataArray()
+        public dataMessage[] receiveDataArray()
         {
             var data = udpServer.Receive(ref remoteEP);
 
-            dataMessage test = fromBytes(data);
+            dataMessage[] test = fromBytesToMessageArray(data);
             return test;
         }
 
-        private dataMessage fromBytes(byte[] arr)
+        private dataMessage fromBytesToMessage(byte[] arr)
         {
             dataMessage str = new dataMessage();
 
@@ -71,6 +71,28 @@ namespace UDP_Test
             Marshal.Copy(dst, 0, ptr, size);
 
             str = (dataMessage)Marshal.PtrToStructure(ptr, str.GetType());
+            Marshal.FreeHGlobal(ptr);
+
+            return str;
+        }
+
+        private dataMessage[] fromBytesToMessageArray(byte[] arr)
+        {
+
+            //Hier iets om de arraysize te bepalen Erwin stuurt dat in de header mee.
+
+            dataMessage[] str = new dataMessage[messageArraySize];
+
+            int size = Marshal.SizeOf(str);
+            IntPtr ptr = Marshal.AllocHGlobal(size);
+
+            byte[] dst = new byte[arr.Length - UDPBytes];//Min de eerste 3 UDP bytes
+
+            Array.Copy(arr, UDPBytes, dst, 0, dst.Length);
+
+            Marshal.Copy(dst, 0, ptr, size);
+
+            str = (dataMessage[])Marshal.PtrToStructure(ptr, str.GetType());
             Marshal.FreeHGlobal(ptr);
 
             return str;

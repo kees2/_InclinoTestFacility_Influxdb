@@ -121,7 +121,7 @@ namespace UDP_Test
 
         public int determineIndexInclino(int Sensor_Id)
         {
-            return Sensor_Id - amountBMI055;
+            return Sensor_Id - amountBMI055 - sensorOffset;
         }
 
         public int determineIndexIMU(int Sensor_Id)
@@ -139,7 +139,7 @@ namespace UDP_Test
             }
             else
             {
-                index = Sensor_Id;
+                index = Sensor_Id - sensorOffset;
             }
             return index;
         }

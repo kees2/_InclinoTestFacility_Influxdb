@@ -45,25 +45,25 @@ namespace UDP_Test
 
         public enum Sensor_Id
         {
-            BMI055_0 = 0,
-            BMI055_1 = 1,
-            BMI055_2 = 2,
-            BMI055_3 = 3,
-            BMI055_4 = 4,
-            BMI055_5 = 5,
-            BMI055_6 = 6,
-            BMI055_7 = 7,
-            SCA103T_0 = 8,
-            SCA103T_1 = 9,
-            SCA103T_2 = 10,
-            SCA103T_3 = 11,
-            SCA103T_4 = 12,
-            SCA103T_5 = 13,
-            SCA103T_6 = 14,
-            SCA103T_7 = 15,
-            BMI085 = 16,
-            LMS6DSO = 17,
-            MS5611_01BA03 = 18
+            BMI055_0 = 1,
+            BMI055_1 = 2,
+            BMI055_2 = 3,
+            BMI055_3 = 4,
+            BMI055_4 = 5,
+            BMI055_5 = 6,
+            BMI055_6 = 7,
+            BMI055_7 = 8,
+            SCA103T_0 = 9,
+            SCA103T_1 = 10,
+            SCA103T_2 = 11,
+            SCA103T_3 = 12,
+            SCA103T_4 = 13,
+            SCA103T_5 = 14,
+            SCA103T_6 = 15,
+            SCA103T_7 = 16,
+            BMI085 = 17,
+            LMS6DSO = 18,
+            MS5611_01BA03 = 19
         };
 
 
