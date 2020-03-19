@@ -4,7 +4,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using InfluxDB.Collector;
 using InfluxDB.LineProtocol.Client;
 using InfluxDB.LineProtocol.Payload;
 
@@ -34,6 +33,7 @@ namespace UDP_Test
             //payload = new LineProtocolPayload();
         }
 
+        //Send a single datapackage to the database
         public int addData(int sensor_id, enums.Data_type data_type, int data, enums.IC_type ic_type)
         {
             LineProtocolPayload payload = new LineProtocolPayload();
@@ -52,6 +52,7 @@ namespace UDP_Test
             return 0;
         }
 
+        //Send all IMU data to the influxdb database
         public int addIMUs(IMU[] source, int amountIMUs)
         {
             LineProtocolPayload payload = new LineProtocolPayload();
@@ -61,7 +62,7 @@ namespace UDP_Test
                 {
                     if(source[i].data[j].arraySize > 0)
                     {
-                        LineProtocolPoint point = convertIMU(source[i].SensorId, (enums.Data_type)j, source[i].data[j], source[i].icType);
+                        LineProtocolPoint point = convertToPoint(source[i].SensorId, (enums.Data_type)j, source[i].data[j], source[i].icType);
                         payload.Add(point);
                         //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", source[i].SensorId, (enums.Data_type)j, source[i].data[j].determineMin().ToString("X"));
                     }
@@ -83,12 +84,12 @@ namespace UDP_Test
             for (int i = 0; i < amountInclinos; i++)
             {
                 if ((source[i].data[0].arraySize != 0) & (source[i].data[1].arraySize != 0)){//This should always be like this
-                    point = convertIMU(source[i].SensorId, enums.Data_type.INCL_A, source[i].data[0], source[i].icType);
+                    point = convertToPoint(source[i].SensorId, enums.Data_type.INCL_A, source[i].data[0], source[i].icType);
                     payload.Add(point);
-                    point = convertIMU(source[i].SensorId, enums.Data_type.INCL_B, source[i].data[1], source[i].icType);
+                    point = convertToPoint(source[i].SensorId, enums.Data_type.INCL_B, source[i].data[1], source[i].icType);
                     payload.Add(point);
                     source[i].calculateAllDifferential();
-                    point = convertIMU(source[i].SensorId, enums.Data_type.INCL, source[i].data[2], source[i].icType);
+                    point = convertToPoint(source[i].SensorId, enums.Data_type.INCL, source[i].data[2], source[i].icType);
                     payload.Add(point);
                 }
             }
@@ -96,7 +97,8 @@ namespace UDP_Test
             return 0;
         }
 
-        public static LineProtocolPoint convertIMU(int sensor_id, enums.Data_type data_type, Data data, enums.IC_type ic_type)//naam aanpassen naar iets algemeneererdere iets niet alleen IMU
+        //Convert packagedata to min, max, AVG, AVG_Error data which are puten in a influxdb LineProtocolPoint format
+        public static LineProtocolPoint convertToPoint(int sensor_id, enums.Data_type data_type, Data data, enums.IC_type ic_type)//naam aanpassen naar iets algemeneererdere iets niet alleen IMU
         {
             var fields = new Dictionary<string, object>();
 

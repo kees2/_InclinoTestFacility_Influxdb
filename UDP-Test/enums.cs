@@ -21,17 +21,19 @@ namespace UDP_Test
 
         public enum Data_type
         {
-            GYRO_X = 0,
-            GYRO_Y = 1,
-            GYRO_Z = 2,
-            ACC_X = 3,
-            ACC_Y = 4,
-            ACC_Z = 5,
-            TEMP = 6,
-            INCL_A = 7,
-            INCL_B = 8,
-            INCL = 9,
-            BARO = 10
+            EMPTY = 0,
+            GYRO_X = 1,
+            GYRO_Y = 2,
+            GYRO_Z = 3,
+            ACC_X = 4,
+            ACC_Y = 5,
+            ACC_Z = 6,
+            TEMP = 7,
+            INCL_A = 8,
+            INCL_B = 9,
+            BARO = 10,
+            VREF = 11,
+            INCL = 12,
         };
 
         public enum Atribute_type
@@ -45,6 +47,7 @@ namespace UDP_Test
 
         public enum Sensor_Id
         {
+            EMPTY = 0,
             BMI055_0 = 1,
             BMI055_1 = 2,
             BMI055_2 = 3,

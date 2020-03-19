@@ -25,11 +25,13 @@ namespace UDP_Test
 
         public void addIMUData(int Data_type, int newData)
         {
-            data[Data_type].addData(newData);
+            //Add data to an IMU dataArray
+            data[Data_type - 1].addData(newData);
         }
         
         public void resetIMUData()
         {
+            //Reset everything after data has been send
             for (int i = 0; i < amountIMUAtributes; i++)
             {
                 data[i].reset();

@@ -46,6 +46,7 @@ namespace UDP_Test
             InitTimer();
         }
 
+        //Initialize timer which interrupts every second
         private void InitTimer()
         {
             System.Timers.Timer timer = new System.Timers.Timer();
@@ -56,28 +57,22 @@ namespace UDP_Test
 
         //TODO
         //Move all functions in this class to dataprocessor
+
+        //Send all buffered data to the influx database
         void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
             //fillDummyDataInclino();
-            influx17.addIMUs(dataProcessor.IMUS, dataProcessor.AmountIMU);
-            influx17.addInclinos(dataProcessor.Inclinos, dataProcessor.AmountInclino);
 
-            for(int i = 0; i < dataProcessor.AmountIMU; i++)
-            {
-                for(int j = 0; j < 6; j++)
-                {
-                    Console.WriteLine("amount data {0}", dataProcessor.IMUS[i].data[j].arraySize);
-                }
-            }
-            Console.WriteLine("amount of messages received {0}", testcounterAmountMessages);
-            testcounterAmountMessages = 0;
+            influx17.addIMUs(dataProcessor.IMUS, dataProcessor.AmountIMU);
+            influx17.addInclinos(dataProcessor.Inclinos, dataProcessor.AmountInclino);          
+
             dataProcessor.resetIMUs();
             dataProcessor.resetInclinos();
-            influx17.sendData();
-            stopwatch.Stop();
-            Console.WriteLine("Time{0}",stopwatch.ElapsedMilliseconds);
-            
+
+            //stopwatch.Stop();
+            //Console.WriteLine("Time{0}",stopwatch.ElapsedMilliseconds);
+            Console.WriteLine("amount packages{0}", testcounterAmountMessages);
+            testcounterAmountMessages = 0;
         }
 
         private void makeThreads()
@@ -100,35 +95,30 @@ namespace UDP_Test
 
         private  void dataReceiver()
         {
-            Stopwatch stopwatch = Stopwatch.StartNew();
-            //Receive.dataMessage message = receiver.receiveData();
             Receive.dataMessage[] messages = receiver.receiveDataArray();
-            //receiveMessageTest(message);
-
+            
             for (int i = 0; i < messages.Length; i++)
             {
-                if(messages[i].Sensor_Id == 0)
+                if (messages[i].Sensor_Id == 0)
                 {
                     break;
+
                 }
-                //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
-                if (
+                else if (
                     (enums.Data_type)messages[i].Data_type == enums.Data_type.TEMP ||
                     (enums.Data_type)messages[i].Data_type == enums.Data_type.BARO)
                 {
                     //Hier data toevoegen voor temperatuur, barometer etc.
-                    influx17.addData(messages[i].Sensor_Id, (enums.Data_type)messages[i].Data_type, messages[i].data, determineSensorType(messages[i].Sensor_Id));
-                    //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", message.Sensor_Id, (enums.Data_type)message.Data_type, message.data.ToString("X"));
+                    influx17.addData(messages[i].Sensor_Id, (enums.Data_type)messages[i].Data_type, messages[i].data, determineSensorType(messages[i].Sensor_Id)); //dit aanpassen als er 1000x per seconde de temperatuur wordt gestuurd.
+                    //Console.WriteLine("Sensor_Id {0}, Data type {1}, data {2}", messages[i].Sensor_Id, messages[i].Data_type, messages[i].data);
                 }
                 else
                 {
                     //Process acc, inclino and gyrodata so that average error can be calculated
-                    testcounterAmountMessages++;
-                    dataProcessor.addData(messages[i].Sensor_Id, messages[i].Data_type, messages[i].data);
+                    dataProcessor.addData(messages[i].Sensor_Id, messages[i].Data_type, messages[i].data);  
                 }
-                stopwatch.Stop();
-                Console.WriteLine("ReadTime{0}", stopwatch.ElapsedTicks);
             }
+            testcounterAmountMessages++;
         }
 
         public void fillDummyDataIMU()

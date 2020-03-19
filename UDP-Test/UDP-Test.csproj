@@ -158,7 +158,6 @@
     <Compile Include="IMUData.cs" />
     <Compile Include="Inclino.cs" />
     <Compile Include="InclinoData.cs" />
-    <Compile Include="Influxdb.cs" />
     <Compile Include="Influxdb1_7.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

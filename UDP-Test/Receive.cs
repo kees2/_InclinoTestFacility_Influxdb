@@ -6,14 +6,16 @@ using System.Threading.Tasks;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using System.Net;
+
 
 namespace UDP_Test
 {
     public class Receive
     {
         const int UDPBytes = 3;
-        int messageArraySize = 0;
-
+        Socket s;
+        EndPoint senderRemote;
 
         public struct dataMessage
         {
@@ -31,6 +33,23 @@ namespace UDP_Test
             //receiveBuffer = new dataMessage();
             udpServer = new UdpClient(52256);
             remoteEP = new IPEndPoint(IPAddress.Any, 52256);
+
+            byte[] ipbyte = new byte[] { 192, 168, 0, 9 };
+            System.Net.IPAddress ip = new IPAddress(ipbyte);
+
+            IPHostEntry hostEntry = Dns.GetHostEntry(Dns.GetHostName());
+            IPEndPoint endPoint = new IPEndPoint(ip, 52256);
+
+            //IPEndPoint endPoint = new IPEndPoint(hostEntry.AddressList[4], 52256);
+            
+            s = new Socket(endPoint.Address.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+
+            // Creates an IpEndPoint to capture the identity of the sending host.
+            IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
+            senderRemote = (EndPoint)sender;
+
+            // Binding is required with ReceiveFrom calls.
+            s.Bind(endPoint);
         }
 
         public dataMessage receiveDataWithResponse()
@@ -51,9 +70,14 @@ namespace UDP_Test
 
         public dataMessage[] receiveDataArray()
         {
-            var data = udpServer.Receive(ref remoteEP);
+            //var data = udpServer.Receive(ref remoteEP);
+            byte[] data = new Byte[852];
+            s.ReceiveBufferSize = 131072;
+            //Console.WriteLine("Buffersize = {0}", s.ReceiveBufferSize);
+            s.ReceiveFrom(data, 0, data.Length, SocketFlags.None, ref senderRemote);
 
             dataMessage[] test = fromBytesToMessageArray(data);
+
             return test;
         }
 
@@ -79,11 +103,11 @@ namespace UDP_Test
         private dataMessage[] fromBytesToMessageArray(byte[] arr)
         {
 
-            //Hier iets om de arraysize te bepalen Erwin stuurt dat in de header mee.
+            int messageArraySize = arr[0];
 
             dataMessage[] str = new dataMessage[messageArraySize];
 
-            int size = Marshal.SizeOf(str);
+            int size = Marshal.SizeOf(str[0]) * str.Length;
             IntPtr ptr = Marshal.AllocHGlobal(size);
 
             byte[] dst = new byte[arr.Length - UDPBytes];//Min de eerste 3 UDP bytes
@@ -92,7 +116,12 @@ namespace UDP_Test
 
             Marshal.Copy(dst, 0, ptr, size);
 
-            str = (dataMessage[])Marshal.PtrToStructure(ptr, str.GetType());
+            for(int i = 0; i < str.Length; i++)
+            {
+                IntPtr p = new IntPtr((ptr.ToInt32() + i * Marshal.SizeOf(str[0])));
+                str[i] = (dataMessage)Marshal.PtrToStructure(p, str[i].GetType());
+            }
+            
             Marshal.FreeHGlobal(ptr);
 
             return str;
@@ -108,6 +137,37 @@ namespace UDP_Test
             Marshal.Copy(ptr, arr, 0, size);
             Marshal.FreeHGlobal(ptr);
             return arr;
+        }
+        private static Socket ConnectSocket(string server, int port)
+        {
+            Socket s = null;
+            IPHostEntry hostEntry = null;
+
+            // Get host related information.
+            hostEntry = Dns.GetHostEntry(server);
+
+            // Loop through the AddressList to obtain the supported AddressFamily. This is to avoid
+            // an exception that occurs when the host IP Address is not compatible with the address family
+            // (typical in the IPv6 case).
+            foreach (IPAddress address in hostEntry.AddressList)
+            {
+                IPEndPoint ipe = new IPEndPoint(address, port);
+                Socket tempSocket =
+                    new Socket(ipe.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+
+                tempSocket.Connect(ipe);
+
+                if (tempSocket.Connected)
+                {
+                    s = tempSocket;
+                    break;
+                }
+                else
+                {
+                    continue;
+                }
+            }
+            return s;
         }
     }
 }

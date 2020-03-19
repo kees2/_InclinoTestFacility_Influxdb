@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Diagnostics;
+
 
 namespace UDP_Test
 {
@@ -80,12 +82,8 @@ namespace UDP_Test
             //Deze if statements kunnen misschien beter in de DataHandler
             int index = Sensor_Id;
             if (
-                (enums.Data_type)Data_type == enums.Data_type.GYRO_X ||
-                (enums.Data_type)Data_type == enums.Data_type.GYRO_Y ||
-                (enums.Data_type)Data_type == enums.Data_type.GYRO_Z ||
-                (enums.Data_type)Data_type == enums.Data_type.ACC_X ||
-                (enums.Data_type)Data_type == enums.Data_type.ACC_Y ||
-                (enums.Data_type)Data_type == enums.Data_type.ACC_Z)
+                (enums.Data_type)Data_type >= enums.Data_type.GYRO_X &&
+                (enums.Data_type)Data_type <= enums.Data_type.ACC_Z)
             {
                 imus[determineIndexIMU(Sensor_Id)].addIMUData(Data_type, data);
             }
@@ -93,14 +91,16 @@ namespace UDP_Test
                 (enums.Data_type)Data_type == enums.Data_type.INCL_A ||
                 (enums.Data_type)Data_type == enums.Data_type.INCL_B)
             {
-
                 inclinos[determineIndexInclino(Sensor_Id)].addInclinoData(Data_type, data);
+                //stopwatch.Stop();
+                //Console.WriteLine("Ms{0}", stopwatch.Elapsed.TotalMillisecondsMilliseconds);
+
             }
             else
             {
                 Console.WriteLine("Error Sensor with this Id does not exist");
             }
-
+            
         }
 
         public void resetIMUs()
@@ -119,11 +119,13 @@ namespace UDP_Test
             }
         }
 
+        //Convert a sensor id to an index for the inclinosensor
         public int determineIndexInclino(int Sensor_Id)
         {
             return Sensor_Id - amountBMI055 - sensorOffset;
         }
 
+        //Convert a sensor id to an index for the IMUs
         public int determineIndexIMU(int Sensor_Id)
         {
             int index = 0;
