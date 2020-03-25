@@ -24,7 +24,15 @@ namespace UDP_Test
 
         public void addInclinoData(int Data_type, int newData)
         {
-            data[Data_type-7].addData(newData);//min 6 misschien weg
+            if((enums.Data_type)Data_type == enums.Data_type.INCL_A)
+            {
+                data[0].addData(newData);
+            }
+            else if ((enums.Data_type)Data_type == enums.Data_type.INCL_B)
+            {
+                data[1].addData(newData);
+            }
+            
         }
 
         public void resetInclinoData()

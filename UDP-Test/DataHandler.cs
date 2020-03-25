@@ -14,8 +14,11 @@ namespace UDP_Test
         int testcounter = 0;
         int max = 0;
         int min = 0;
+        int tempRead = 0;
         int testcounterAmountMessages = 0;
-        
+        int tempCounter = 0;
+        bool Baroread = false;
+
         public struct databaseMessage
         {
             public int data;
@@ -39,7 +42,8 @@ namespace UDP_Test
 
         public void initDataHandler()
         {
-            receiver.initUDP();
+            //receiver.initUDP();
+            AsyncReceive.ReceiveMessages();
             influx17.initDB();
 
             makeThreads();
@@ -49,19 +53,20 @@ namespace UDP_Test
         //Initialize timer which interrupts every second
         private void InitTimer()
         {
-            System.Timers.Timer timer = new System.Timers.Timer();
-            timer.Interval = 1000;
-            timer.Elapsed += timer_Elapsed;
-            timer.Start();
+            System.Timers.Timer timerS = new System.Timers.Timer();
+            timerS.Interval = 1000;
+            timerS.Elapsed += timer_ElapsedS;
+            timerS.Start();
+
+
         }
 
         //TODO
         //Move all functions in this class to dataprocessor
 
         //Send all buffered data to the influx database
-        void timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+        void timer_ElapsedS(object sender, System.Timers.ElapsedEventArgs e)
         {
-            //fillDummyDataInclino();
 
             influx17.addIMUs(dataProcessor.IMUS, dataProcessor.AmountIMU);
             influx17.addInclinos(dataProcessor.Inclinos, dataProcessor.AmountInclino);          
@@ -71,8 +76,16 @@ namespace UDP_Test
 
             //stopwatch.Stop();
             //Console.WriteLine("Time{0}",stopwatch.ElapsedMilliseconds);
+            
             Console.WriteLine("amount packages{0}", testcounterAmountMessages);
+            //Console.WriteLine("amount packages{0}", testcounterAmountMessages);
+            Console.WriteLine("amount temperature{0}", tempCounter);
+            tempCounter = 0;
+            tempRead = 0;
             testcounterAmountMessages = 0;
+            Baroread = false;
+
+
         }
 
         private void makeThreads()
@@ -93,31 +106,55 @@ namespace UDP_Test
             }
         }
 
-        private  void dataReceiver()
+        //void dataReceiver(object sender, System.Timers.ElapsedEventArgs e)
+        void dataReceiver()
         {
-            Receive.dataMessage[] messages = receiver.receiveDataArray();
-            
+            while(AsyncReceive.MessageReadbuffer == AsyncReceive.dataMessageCounter)
+            {
+                Thread.Sleep(1);
+            }
+            Receive.dataMessage[] messages = AsyncReceive.messageBuffer[AsyncReceive.MessageReadbuffer];
+           
+            if (AsyncReceive.MessageReadbuffer == 999)
+            {
+                AsyncReceive.MessageReadbuffer = 0;
+            }
+            AsyncReceive.MessageReadbuffer++;
+
             for (int i = 0; i < messages.Length; i++)
             {
-                if (messages[i].Sensor_Id == 0)
+                if (messages[i].Sensor_Id == 0 || messages[i].Data_type == 0)
                 {
                     break;
+                }
+                else if ((enums.Data_type)messages[i].Data_type == enums.Data_type.TEMP)
+                {
+                    if ((tempRead & (1 << messages[i].Sensor_Id)) == 0)
+                    {
+                        tempCounter++;
+                        enums.IC_type ic_type = determineSensorType(messages[i].Sensor_Id);
+                        influx17.addData(messages[i].Sensor_Id, (enums.Data_type)messages[i].Data_type, dataProcessor.calculateTempDegrees(messages[i].data, ic_type), ic_type); 
+                        tempRead |= (1 << (messages[i].Sensor_Id));
+
+                    }
 
                 }
-                else if (
-                    (enums.Data_type)messages[i].Data_type == enums.Data_type.TEMP ||
-                    (enums.Data_type)messages[i].Data_type == enums.Data_type.BARO)
+                else if ((enums.Data_type)messages[i].Data_type == enums.Data_type.BARO)
                 {
-                    //Hier data toevoegen voor temperatuur, barometer etc.
-                    influx17.addData(messages[i].Sensor_Id, (enums.Data_type)messages[i].Data_type, messages[i].data, determineSensorType(messages[i].Sensor_Id)); //dit aanpassen als er 1000x per seconde de temperatuur wordt gestuurd.
-                    //Console.WriteLine("Sensor_Id {0}, Data type {1}, data {2}", messages[i].Sensor_Id, messages[i].Data_type, messages[i].data);
+                    if(!Baroread)
+                    {
+                        Baroread = true;
+                        influx17.addData(messages[i].Sensor_Id, (enums.Data_type)messages[i].Data_type, messages[i].data, determineSensorType(messages[i].Sensor_Id));
+                    }
                 }
-                else
-                {
-                    //Process acc, inclino and gyrodata so that average error can be calculated
-                    dataProcessor.addData(messages[i].Sensor_Id, messages[i].Data_type, messages[i].data);  
+                else if((messages[i].Sensor_Id > 0) & (messages[i].Sensor_Id < 20)){
+                    dataProcessor.addData(messages[i].Sensor_Id, messages[i].Data_type, messages[i].data);
+                }
+                else{
+                    Console.WriteLine("Data Invalid: Sensor_Id {0}, Data type {1}, data {2}", messages[i].Sensor_Id, messages[i].Data_type, messages[i].data);
                 }
             }
+
             testcounterAmountMessages++;
         }
 
@@ -189,15 +226,32 @@ namespace UDP_Test
 
         private enums.IC_type determineSensorType(int Sensor_id)
         {
-            if(Sensor_id >=0 && Sensor_id < 8)
+            if(Sensor_id >=1 && Sensor_id <= 8)
             {
                 return enums.IC_type.BMI55;
             }
-            else if (Sensor_id >= 8 && Sensor_id < 16)
+            else if (Sensor_id >= 9 && Sensor_id <= 16)
+            {
+                return enums.IC_type.SCA103T;
+            }
+            else if((enums.Sensor_Id)Sensor_id == enums.Sensor_Id.BMI085)
             {
                 return enums.IC_type.BMI085;
             }
-            return (enums.IC_type)Sensor_id;
+            else if((enums.Sensor_Id)Sensor_id == enums.Sensor_Id.LMS6DSO)
+            {
+                return enums.IC_type.LMS6DSO;
+            }
+            else
+            {
+                return 0;
+            }
+            
+        }
+
+        private void resetTempRead()
+        {
+            tempRead = 0;
         }
 
     }
