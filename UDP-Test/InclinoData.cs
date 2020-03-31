@@ -26,13 +26,11 @@ namespace UDP_Test
             return INCLINOMAXVOLTAGE / ADCRES * measuredValue;
         }
 
-        public void AddCalculatedDifferential(int inclinoDataA, int inclinoDataB)
+        public void AddCalculatedDifferential(double inclinoDataA, double inclinoDataB)
         {
                 dataArray[arraySize] = inclinoDataA - inclinoDataB;
                 arraySize++;
         }
-
-      
 
         public double CalculateAngle(double voltage)
         {

@@ -32,7 +32,6 @@ namespace UDP_Test
             {
                 data[1].addData(newData);
             }
-            
         }
 
         public void resetInclinoData()
@@ -59,6 +58,12 @@ namespace UDP_Test
             {
                 data[2].AddCalculatedDifferential(data[0].dataArray[i], data[1].dataArray[i]);
             }
+        }
+
+        public void calculateInclinoOffset()
+        {
+            data[0].calculateOffset();
+            data[1].calculateOffset();
         }
 
 

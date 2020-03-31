@@ -13,6 +13,7 @@ namespace UDP_Test
         public IMUData[] data = new IMUData[amountIMUAtributes];
         public int SensorId{ get; set; }
         public enums.IC_type icType;
+        private int enumCorrection = 1;
 
         public IMU(enums.IC_type type)
         {
@@ -23,10 +24,10 @@ namespace UDP_Test
             }
         }
 
-        public void addIMUData(int Data_type, int newData)
+        public void addIMUData(int Data_type, double newData)
         {
             //Add data to an IMU dataArray
-            data[Data_type - 1].addData(newData);
+            data[Data_type - enumCorrection].addData(newData);
         }
         
         public void resetIMUData()
@@ -38,9 +39,13 @@ namespace UDP_Test
             }
         }
 
-
-
-        
+        public void calculateIMUOffset()
+        {
+            for(int i = 0; i < amountIMUAtributes; i++)
+            {
+                data[i].calculateOffset();
+            }
+        }
     }
 }
 

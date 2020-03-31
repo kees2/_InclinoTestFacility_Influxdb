@@ -14,6 +14,13 @@ namespace UDP_Test
     class AsyncReceive
     {
 
+        public struct dataMessage
+        {
+            public int data;
+            public byte Data_type;
+            public byte Sensor_Id;
+        };
+
         const int UDPBytes = 3;
 
         public struct UdpState
@@ -25,7 +32,7 @@ namespace UDP_Test
 
         public static bool messageReceived = false;
         public static int messageCounter = 0;
-        public static Receive.dataMessage[][] messageBuffer = new Receive.dataMessage[1000][];
+        public static dataMessage[][] messageBuffer = new dataMessage[1000][];
         public static int dataMessageCounter = 0;
         public static int MessageReadbuffer = 0;
 
@@ -39,8 +46,6 @@ namespace UDP_Test
 
         static void timer_ElapsedS(object sender, System.Timers.ElapsedEventArgs e)
         {
-
-            Console.WriteLine("Evert");
             Console.WriteLine($"Received: {messageCounter}");
             messageCounter = 0;
         }
@@ -51,19 +56,18 @@ namespace UDP_Test
             IPEndPoint e = ((UdpState)(ar.AsyncState)).e;
 
             byte[] receiveBytes = u.EndReceive(ar, ref e);
-            //byte[] receiveBytes = u.Receive(ref e);
 
             messageBuffer[dataMessageCounter] = fromBytesToMessageArray(receiveBytes);
-            if (dataMessageCounter == 999)
+            dataMessageCounter++;
+            if (dataMessageCounter == 1000)
             {
                 dataMessageCounter = 0;
             }
-            dataMessageCounter++;
             messageCounter++;
 
+           
+
             u.BeginReceive(new AsyncCallback(ReceiveCallback), (UdpState)ar.AsyncState);
-            //client.BeginReceive(state.buffer, 0, StateObject.BufferSize, 0, new AsyncCallback(ReceiveCallback), state);
-            //Console.WriteLine($"Received: {messageCounter}");
             messageReceived = true;
         }
 
@@ -88,12 +92,12 @@ namespace UDP_Test
             }
         }
 
-        private static Receive.dataMessage[] fromBytesToMessageArray(byte[] arr)
+        private static dataMessage[] fromBytesToMessageArray(byte[] arr)
         {
 
             int messageArraySize = arr[0];
 
-            Receive.dataMessage[] str = new Receive.dataMessage[messageArraySize];
+            dataMessage[] str = new dataMessage[messageArraySize];
 
             int size = Marshal.SizeOf(str[0]) * str.Length;
             IntPtr ptr = Marshal.AllocHGlobal(size);
@@ -107,7 +111,7 @@ namespace UDP_Test
             for (int i = 0; i < str.Length; i++)
             {
                 IntPtr p = new IntPtr((ptr.ToInt32() + i * Marshal.SizeOf(str[0])));
-                str[i] = (Receive.dataMessage)Marshal.PtrToStructure(p, str[i].GetType());
+                str[i] = (dataMessage)Marshal.PtrToStructure(p, str[i].GetType());
             }
 
             Marshal.FreeHGlobal(ptr);

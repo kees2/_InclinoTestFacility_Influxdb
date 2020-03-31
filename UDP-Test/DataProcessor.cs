@@ -19,6 +19,15 @@ namespace UDP_Test
 
         const int amountIMU = amountBMI055 + amountBMI085 + amountLMS6DSO;
 
+        private const int BMI055_angular_rate = 2000;
+
+        private const int BMI085_Acc_rang = 4;//g
+        private const int BMI085_angular_rate = 2000;
+
+        private const int LSM6DSM_Acc_rang = 2;//g
+        private const int LSM6DSM_angular_rate = 250;
+
+
         private const int amountInclino = 8;
 
         public int AmountInclino
@@ -78,14 +87,24 @@ namespace UDP_Test
 
         public void addData(int Sensor_Id, int Data_type, int data)
         {
-            //work in progress
-            //for loop waarbij alle imu sensoren afgegaan worden
-            //Deze if statements kunnen misschien beter in de DataHandler
             int index = Sensor_Id;
+            double returnValue = 0;
             if (
                 (enums.Data_type)Data_type >= enums.Data_type.GYRO_X &&
                 (enums.Data_type)Data_type <= enums.Data_type.ACC_Z)
             {
+                if ((enums.Sensor_Id)Sensor_Id == enums.Sensor_Id.LMS6DSO )
+                {
+                    calculateLSM6DSM(data, Data_type);
+                }
+                else if ((enums.Sensor_Id)Sensor_Id == enums.Sensor_Id.BMI085)
+                {
+                    calculateBMI085(data, Data_type);
+                }
+                else 
+                {
+                    calculateBMI055(data, Data_type);
+                }
                 imus[determineIndexIMU(Sensor_Id)].addIMUData(Data_type, data);
             }
             else if (
@@ -93,13 +112,10 @@ namespace UDP_Test
                 (enums.Data_type)Data_type == enums.Data_type.INCL_B)
             {
                 inclinos[determineIndexInclino(Sensor_Id)].addInclinoData(Data_type, data);
-                //stopwatch.Stop();
-                //Console.WriteLine("Ms{0}", stopwatch.Elapsed.TotalMillisecondsMilliseconds);
-
             }
             else
             {
-                Console.WriteLine("Error Sensor with this Id does not exist");
+                Console.WriteLine("Error Data_type with this Id does not exist");
             }
             
         }
@@ -183,11 +199,84 @@ namespace UDP_Test
                 //Temperature sensitivity 256 LSB/°C
                 //The output of the temperature sensor is 0 LSB (typ.) at 25 °C
                 short LMS6DSOTemp_int16 = (short)temp;
-                double Evert = 25 + (LMS6DSOTemp_int16 / 256);
+                double temperature = 25 + (LMS6DSOTemp_int16 / 256);
                 return 25 + (LMS6DSOTemp_int16 / 256);
             }
 
                 return 1;
+        }
+
+        public void CalculateOffset()
+        {
+            int j = 0;
+            for (int i = 0; i < amountBMI055; i++)
+            {
+                imus[i].calculateIMUOffset();
+            }
+            for (int i = 0; i < amountBMI085; i++)
+            {
+                imus[amountBMI055 + i].calculateIMUOffset();
+            }
+            for (int i = 0; i < amountLMS6DSO; i++)
+            {
+                imus[amountBMI055 + amountBMI085 + i].calculateIMUOffset();
+            }
+            for (int i = (int)enums.Sensor_Id.SCA103T_0; i < (int)enums.Sensor_Id.SCA103T_0 + amountInclino; i++)
+            {
+                inclinos[j].calculateInclinoOffset();
+                j++;
+            }
+        }
+
+        private double calculateLSM6DSM(int data, int Data_type)
+        {
+            double returnValue;
+            if (
+                (enums.Data_type)Data_type >= enums.Data_type.GYRO_X &&
+                (enums.Data_type)Data_type <= enums.Data_type.GYRO_Z)
+            {
+                data = (Int16)data;
+                returnValue = LSM6DSM_angular_rate / 32767 * data;
+            }
+            else
+            {
+                data = (Int16)data;
+                returnValue = data / 32768 * 1000 * 2 ^ (LSM6DSM_Acc_rang + 1);
+            }
+            return returnValue;
+        }
+        private double calculateBMI085(int data, int Data_type)
+        {
+            double returnValue;
+            if (
+                (enums.Data_type)Data_type >= enums.Data_type.GYRO_X &&
+                (enums.Data_type)Data_type <= enums.Data_type.GYRO_Z)
+            {
+                returnValue = BMI085_angular_rate / 32767 * data;
+            }
+            else
+            {
+                data = (Int16)data;
+                returnValue = data / 32768 * 1000 * 2 ^ (BMI085_Acc_rang + 1);
+            }
+            return returnValue;
+        }
+
+        private double calculateBMI055(int data, int Data_type)
+        {
+            double returnValue;
+            data = (data >> 11) == 0 ? data : -1 ^ 0xFFF | data;
+            if (
+                (enums.Data_type)Data_type >= enums.Data_type.GYRO_X &&
+                (enums.Data_type)Data_type <= enums.Data_type.GYRO_Z)
+            {
+                returnValue = BMI055_angular_rate / 32767 * data;
+            }
+            else
+            {
+                returnValue = data * 0.98;
+            }
+            return returnValue;
         }
 
 
@@ -196,6 +285,6 @@ namespace UDP_Test
 
 
 
-    } 
-    
+    }
+
 }

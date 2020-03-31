@@ -9,16 +9,16 @@ namespace UDP_Test
     public class Data
     {
 
-        private const int bufferSize = 5000;//We only get 1000 messages, but we do 2000 to have a buffer
-        public int[] dataArray { get; set; }
+        private const int bufferSize = 6000;//We only get 1000 messages, but we set it to 2000 to have a buffer
+        public double[] dataArray { get; set; }
         public int arraySize { get; set; }
-        public int[] DataArray { get; set; }
-
+        public double[] DataArray { get; set; }
+        public double offset { get; set; }
 
         public Data()
         {
             arraySize = 0;
-            dataArray = new int[bufferSize];
+            dataArray = new double[bufferSize];
         }
 
         public void reset()
@@ -27,16 +27,16 @@ namespace UDP_Test
             Array.Clear(dataArray, 0, dataArray.Length);
         }
 
-        public void addData(int data)
+        public void addData(double data)
         {
-            dataArray[arraySize] = data;
+            dataArray[arraySize] = (data - offset);
             arraySize++;
         }
 
         //als arraysize 0 is afvangen
-        public int calcAverage()
+        public double calcAverage()
         {
-            int total = 0;
+            double total = 0;
             for(int i = 0; i < arraySize; i++)
             {
                 total += dataArray[i];
@@ -51,9 +51,9 @@ namespace UDP_Test
             }
         }
 
-        public int calcAverageError()
+        public double calcAverageError()
         {
-            int total = 0;
+            double total = 0;
             for (int i = 0; i < arraySize; i++)
             {
                 total += Math.Abs(dataArray[i]);
@@ -68,11 +68,11 @@ namespace UDP_Test
             }
         }
 
-        public int determineMin()
+        public double determineMin()
         {
             if(arraySize != 0)
             {
-                int minValue = int.MaxValue;
+                double minValue = double.MaxValue;
                 for (int i = 0; i < arraySize; i++)
                 {
                     if (dataArray[i] < minValue)
@@ -80,18 +80,23 @@ namespace UDP_Test
                         minValue = dataArray[i];
                     }
                 }
+                if(minValue > 600)
+                {
+
+                }
                 return minValue;
+
             }
             else
             {
-                return 0;
+                return 0;//aanpassen
             }
           
         }
 
-        public int determineMax()
+        public double determineMax()
         {
-            int maxValue = int.MinValue;
+            double maxValue = double.MinValue;
             for (int i = 0; i < arraySize; i++)
             {
                 if(dataArray[i] > maxValue)
@@ -102,5 +107,9 @@ namespace UDP_Test
             return maxValue;
         }
 
+        public void calculateOffset()
+        {
+            offset = calcAverage();
+        }
     }
 }
