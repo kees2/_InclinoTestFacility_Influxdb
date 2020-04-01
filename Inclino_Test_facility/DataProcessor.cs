@@ -270,7 +270,7 @@ namespace Inclino_Test_facility
                 (enums.Data_type)Data_type >= enums.Data_type.GYRO_X &&
                 (enums.Data_type)Data_type <= enums.Data_type.GYRO_Z)
             {
-                returnValue = BMI055_angular_rate / 32767 * data;
+                returnValue = (BMI055_angular_rate * data) / 32767;
             }
             else
             {
