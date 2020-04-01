@@ -2,13 +2,11 @@
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
-using System.Diagnostics;
 
 namespace Inclino_Test_facility
 {
     class Program
     {
-
 
         static void Main(string[] args)
         {

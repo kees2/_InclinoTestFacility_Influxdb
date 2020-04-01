@@ -72,7 +72,8 @@ namespace Inclino_Test_facility
                     }
                 }
             }
-            client.WriteAsync(payload);
+            var influxResult =  client.WriteAsync(payload);
+
             return 0;
         }
 
