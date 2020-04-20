@@ -64,11 +64,10 @@ namespace Inclino_Test_facility
                     {
                         LineProtocolPoint point = convertToPoint(source[i].SensorId, (enums.Data_type)(j+1), source[i].data[j], source[i].icType, "IMU_measurement");
                         payload.Add(point);
-                        //Console.WriteLine("id: {0}, Data_type: {1}, data: {2}", source[i].SensorId, (enums.Data_type)(j+1), source[i].data[j].determineMin().ToString("X"));
                     }
                     else
                     {
-                        //Console.WriteLine("Error Sensor {0} doesn't have data of type {1}", (enums.Sensor_Id)source[i].SensorId, (enums.Data_type)(j+1));
+                        Console.WriteLine("Error Sensor {0} doesn't have data of type {1}", (enums.Sensor_Id)source[i].SensorId, (enums.Data_type)(j+1));
                     }
                 }
             }
